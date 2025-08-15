@@ -213,3 +213,74 @@ INNER JOIN Representantes AS r
     ON o.Oficina = r.Oficina_Rep
 GROUP BY o.Oficina, o.Ciudad
 ORDER BY o.Oficina;
+
+-- Rango de las cuotas asignadas por ciudad
+SELECT 
+    o.Ciudad,
+    MAX(r.Cuota) AS Cuota_Maxima,
+    MIN(r.Cuota) AS Cuota_Minima,
+    (MAX(r.Cuota) - MIN(r.Cuota)) AS Rango_Cuotas
+FROM Representantes AS r
+INNER JOIN Oficinas AS o
+    ON o.Oficina = r.Oficina_Rep
+GROUP BY o.Ciudad
+ORDER BY o.Ciudad;
+
+USE NORTHWND
+/*
+1)SELECCIONAR  EL INGRESO TORAL POR CLIENTE EN 1997 Y ORDENADO POR WL INGRESO
+DE FORMA DESENDENTE. 
+*/
+
+
+USE Northwind;
+
+SELECT TOP 10 
+    C.CompanyName AS [Cliente],
+    ROUND(SUM(OD.Quantity * OD.UnitPrice * (1 - OD.Discount)), 2) AS Ingreso_Total
+FROM [Order Details] AS OD
+INNER JOIN Orders AS O
+    ON O.OrderID = OD.OrderID
+INNER JOIN Customers AS C
+    ON O.CustomerID = C.CustomerID
+WHERE DATEPART(YEAR, O.OrderDate) = 1997
+GROUP BY C.CompanyName
+ORDER BY Ingreso_Total DESC;
+
+/*
+2) SELECIONAR LOS PRODUCTOS POR CATEGORIA MAS VENDIDOS 
+(UNIDADES),ENVIADOS  ALEMANIA ORDENADOS POR CATEGORIA Y DENTRO
+DE CATEGORIA POR UNIDAD DE FORMA ACENDENTE Y DESENDENTE 
+*/
+
+-- Unidades vendidas por producto y categoría (envíos a Alemania)
+SELECT 
+    c.CategoryName AS Categoria,
+    p.ProductName  AS Producto,
+    SUM(od.Quantity) AS Unidades
+FROM [Order Details] AS od
+JOIN Orders   AS o ON o.OrderID   = od.OrderID
+JOIN Products AS p ON p.ProductID = od.ProductID
+JOIN Categories AS c ON c.CategoryID = p.CategoryID
+WHERE o.ShipCountry = 'Germany'
+-- AND o.ShippedDate IS NOT NULL  -- (opcional: solo pedidos enviados)
+GROUP BY c.CategoryName, p.ProductName
+ORDER BY c.CategoryName ASC, Unidades DESC, p.ProductName ASC;
+
+/*
+3)SELECCIONAR EMPLEADOS CON MAS PEDIDOS REALIZADOS 
+POR AÑO,ORDENADOS POR NUMERO DE PEDIDOS
+*/
+
+USE Northwind;
+
+-- Empleados con número de pedidos por año, ordenados por año y cantidad
+SELECT
+    YEAR(o.OrderDate)                           AS Anio,
+    CONCAT(e.FirstName, ' ', e.LastName)        AS Empleado,
+    COUNT(*)                                     AS NumPedidos
+FROM Orders AS o
+JOIN Employees AS e ON e.EmployeeID = o.EmployeeID
+GROUP BY YEAR(o.OrderDate), e.FirstName, e.LastName
+ORDER BY Anio, NumPedidos DESC;   -- más pedidos primero dentro de cada año
+
